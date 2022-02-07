@@ -1,16 +1,18 @@
-﻿using WeatherMetrics.Models;
-using Iot.Device.Bmxx80;
-using Iot.Device.Bmxx80.PowerMode;
-using System.Device.I2c;
+﻿using Iot.Device.Bmxx80;
 using Iot.Device.Media;
-using System.Net.NetworkInformation;
-using System.Net;
-using Quartz;
-using WeatherMetrics.ConsoleApp;
-using Quartz.Impl;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Quartz;
+using Quartz.Impl;
+using System.Device.I2c;
+using WeatherMetrics.ConsoleApp;
+using WeatherMetrics.Models;
 
-using WeatherContext context = new WeatherContext();
+var config = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .Build();
+
+using WeatherContext context = new WeatherContext(config["ConnectionString"]);
 
 I2cConnectionSettings i2cSettings = new I2cConnectionSettings(busId: 0, deviceAddress: Bmx280Base.SecondaryI2cAddress);
 using I2cDevice i2c = I2cDevice.Create(i2cSettings);
@@ -20,14 +22,15 @@ VideoConnectionSettings videoSettings = new VideoConnectionSettings(busId: 0, ca
 using VideoDevice video = VideoDevice.Create(videoSettings);
 
 AppConfig.ServiceProvider = new ServiceCollection()
-            .AddSingleton(context)
-            .AddSingleton(bme)
-            .AddSingleton(video)
-            .BuildServiceProvider();
+    .AddSingleton(config)
+    .AddSingleton(context)
+    .AddSingleton(bme)
+    .AddSingleton(video)
+    .BuildServiceProvider();
 
 // 创建一个触发器
 var trigger = TriggerBuilder.Create()
-    .WithCronSchedule("0 0/1 * * * ? *")
+    .WithCronSchedule(config["QuartzCron"])
     .Build();
 // 创建任务
 var jobDetail = JobBuilder.Create<MetricsJob>()

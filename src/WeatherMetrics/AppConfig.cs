@@ -1,14 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WeatherMetrics.ConsoleApp
+﻿namespace WeatherMetrics.ConsoleApp
 {
     internal static class AppConfig
     {
+        public static string WeatherType { get; set; }
+
         public static IServiceProvider ServiceProvider { get; set; }
     }
 }

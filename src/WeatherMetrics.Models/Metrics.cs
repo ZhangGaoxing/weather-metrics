@@ -11,6 +11,9 @@ namespace WeatherMetrics.Models
         [Column("device_id")]
         public string DeviceId { get; set; }
 
+        [Column("weather_type")]
+        public string WeatherType { get; set; }
+
         [Column("temperature")]
         public double Temperature { get; set; }
 
@@ -25,7 +28,7 @@ namespace WeatherMetrics.Models
 
         public static bool Insert(DbContext context, Metrics metrics)
         {
-            int row = context.Database.ExecuteSqlRaw("INSERT INTO metrics VALUES ({0}, {1}, {2}, {3}, {4}, {5})", metrics.Time, metrics.DeviceId, metrics.Temperature, metrics.Humidity, metrics.Pressure, metrics.ImageBase64);
+            int row = context.Database.ExecuteSqlRaw("INSERT INTO metrics VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6})", metrics.Time, metrics.DeviceId, metrics.WeatherType, metrics.Temperature, metrics.Humidity, metrics.Pressure, metrics.ImageBase64);
 
             return row > 0;
         }

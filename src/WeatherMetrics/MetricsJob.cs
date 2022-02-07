@@ -1,14 +1,10 @@
 ﻿using Iot.Device.Bmxx80;
 using Iot.Device.Bmxx80.PowerMode;
 using Iot.Device.Media;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Quartz;
-using System;
-using System.Collections.Generic;
-using System.Device.I2c;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using WeatherMetrics.Models;
 
 namespace WeatherMetrics.ConsoleApp
@@ -17,13 +13,18 @@ namespace WeatherMetrics.ConsoleApp
     {
         public Task Execute(IJobExecutionContext context)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
+                var metrics = GetMetrics();
+                if (DateTime.Now.Minute == 0 || string.IsNullOrEmpty(AppConfig.WeatherType))
+                {
+                    AppConfig.WeatherType = await GetXinzhiWeatherAsync();
+                }
+                metrics.WeatherType = AppConfig.WeatherType;
+
                 WeatherContext context = (WeatherContext)AppConfig.ServiceProvider.GetService(typeof(WeatherContext));
 
-                var metrics = GetMetrics();
-
-                Console.WriteLine($"[{metrics.Time.ToString("yyyy/MM/dd HH:mm:ss")}] Temperature:{metrics.Temperature} Humidity:{metrics.Humidity} Pressure:{metrics.Pressure}");
+                Console.WriteLine($"[{metrics.Time.ToString("yyyy/MM/dd HH:mm:ss")}] {metrics.WeatherType} Temperature:{metrics.Temperature} Humidity:{metrics.Humidity} Pressure:{metrics.Pressure}");
                 Metrics.Insert(context, metrics);
             });
         }
@@ -59,6 +60,23 @@ namespace WeatherMetrics.ConsoleApp
 
             byte[] image = video.Capture();
             return Convert.ToBase64String(image);
+        }
+
+        private async Task<string> GetXinzhiWeatherAsync()
+        {
+            IConfigurationRoot config = (IConfigurationRoot)AppConfig.ServiceProvider.GetService(typeof(IConfigurationRoot));
+
+            using HttpClient client = new HttpClient();
+
+            try
+            {
+                var json = await client.GetStringAsync($"https://api.seniverse.com/v3/weather/now.json?key={config["Xinzhi:Key"]}&location={config["Xinzhi:Location"]}&language=zh-Hans&unit=c");
+                return (string)JsonConvert.DeserializeObject<dynamic>(json).results[0].now.text;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
         }
     }
 }

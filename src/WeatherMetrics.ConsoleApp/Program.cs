@@ -28,15 +28,14 @@ AppConfig.ServiceProvider = new ServiceCollection()
     .AddSingleton(video)
     .BuildServiceProvider();
 
-// 创建一个触发器
 var trigger = TriggerBuilder.Create()
     .WithCronSchedule(config["QuartzCron"])
     .Build();
-// 创建任务
+
 var jobDetail = JobBuilder.Create<MetricsJob>()
     .WithIdentity("job", "group")
     .Build();
-// 绑定调度器
+
 ISchedulerFactory factory = new StdSchedulerFactory();
 var scheduler = await factory.GetScheduler();
 await scheduler.ScheduleJob(jobDetail, trigger);

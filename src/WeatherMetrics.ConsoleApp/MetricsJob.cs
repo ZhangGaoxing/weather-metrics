@@ -21,6 +21,7 @@ namespace WeatherMetrics.ConsoleApp
                     AppConfig.WeatherType = await GetXinzhiWeatherAsync();
                 }
                 metrics.WeatherType = AppConfig.WeatherType;
+                metrics.ImageBase64 = GetImage();
 
                 WeatherContext context = (WeatherContext)AppConfig.ServiceProvider.GetService(typeof(WeatherContext));
 

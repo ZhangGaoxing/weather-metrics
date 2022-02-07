@@ -1,7 +1,5 @@
 CREATE DATABASE "WeatherMetrics"
-    WITH 
-    OWNER = postgres
-    ENCODING = 'UTF8';
+WITH OWNER = postgres ENCODING = 'UTF8';
 
 CREATE TABLE metrics (
    time TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT 'now()',
